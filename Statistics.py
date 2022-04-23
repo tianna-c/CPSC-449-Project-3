@@ -6,7 +6,7 @@ import uuid
 #Required to create a request and response body for data
 from pydantic import BaseModel
 #Define FastAPI HTTP Methods
-from fastapi import FastAPI, status
+from fastapi import Depends, FastAPI, status
 
 class user(BaseModel):
 	user: str
@@ -22,13 +22,17 @@ class statistics(BaseModel):
 	gameID: int
 	currentStreak: int
 	maxStreak: int
-	guess: Field(None, alias='counter') #idk how to make store this one #guess: List[int](alias='counter') = []
+	guess: Field(None, alias='counter') #idk how to make store this one #guess: List[int](alias='counter') = [] //nested object w/ alias for integer keys
 	winPercentage: int
 	gamesPlayed: int
 	gamesWon: int
 	averageGuesses: int
 	
 app = FastAPI()
+
+# Dependencies
+async def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):
+    return {"q": q, "skip": skip, "limit": limit}
 
 @app.post('/checkAnswer/result/')
 def results(input: gameID):
@@ -67,7 +71,7 @@ def statistics(input: user):
 
         print("The game stats are: " + server)
     except:
-        print("User " + str(input.user) + " does not exist in this database!")
+        print("Game # " + str(input.user) + " does not exist in this database!")
 	
 @app.post('/toptens/')
 def toptens():
