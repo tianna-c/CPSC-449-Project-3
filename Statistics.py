@@ -67,7 +67,7 @@ def statistics(input: user):
 
         print("The game stats are: " + server)
     except:
-        print("Game # " + str(input.user) + " does not exist in this database!")
+        print("User " + str(input.user) + " does not exist in this database!")
 	
 @app.post('/toptens/')
 def toptens():
