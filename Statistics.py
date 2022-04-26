@@ -92,4 +92,7 @@ def statistics(input: user):
 def toptens():
 	#Retrieving the top 10 users by number of wins. Retrieving the top 10 users by longest streak
 	#user can select how they want to retrieve the top 10 users?
+	
+	#idea: check all 3 shards for their top tens, and sort those top tens to find the true top tens and output them
+	
 	return 0
