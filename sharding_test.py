@@ -23,7 +23,6 @@ def create_uuid():
 		user_uuid = uuid.uuid4()
 		user_id_count[c[0]] = user_uuid
 		cur.execute("UPDATE users SET uuid = ? WHERE user_id = ?", [user_uuid, c[0]])
-	con.commit()
 	# creates uuid column in games table
 	try:
 		cur.execute("ALTER TABLE games ADD COLUMN uuid GUID")
