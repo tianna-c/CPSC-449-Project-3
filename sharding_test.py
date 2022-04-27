@@ -17,13 +17,16 @@ def create_uuid():
 		pass
 	# I think we should make a dictionary for the key-value pairs: user_id and uuid
 	user_id_count = {}
-	i = 1
 	# a for loop to generate uuid for each user and insert it into the uuid column
 	for i in range(NUM_USERS):
 		user_uuid = uuid.uuid4() # generate uuid
 		user_id_count[i] = user_uuid #insert uuid into dict according the the corresponding user_id from the loop
+		#print("Test: " + str([user_id_count[i], i]))
 		cur.execute("UPDATE users SET uuid = ? WHERE user_id = ?", [user_uuid, i])
-		i += 1
+	#print(len(user_id_count))
+	#print(user_id_count.items())
+	#print("Final: " + str([user_id_count[i], i]))
+	con.commit()
 	# creates uuid column in games tables
 	try:
 		cur.execute("ALTER TABLE games ADD COLUMN uuid GUID")
@@ -31,9 +34,11 @@ def create_uuid():
 		pass
 	x = 0
 	# should do the same thing as the above loop
-	for x in range(NUM_STATS):
-	     cur.execute("UPDATE games SET uuid = ? WHERE user_id = ?", [user_id_count[x], x]) #gives an error: KeyError: 100000
-	     x += 1
+	while x < NUM_STATS:
+		#print("Test: " + str([user_id_count[x], x]))
+		#gives KeyError
+		cur.execute("UPDATE games SET uuid = ? WHERE user_id = ?", [user_id_count[x], x])
+		x += 1
 	con.commit()
 create_uuid()
 
@@ -47,3 +52,5 @@ def sharding():
 	for i in range(3):
 		con_shard = sqlite3.connect('shard_' + str(i+1) + '.db')
 		#hash uuid/user_id and insert game data into corresponding shards
+		cur_two = con_shard.cursor()
+		cur_one.execute("SELECT * from games WHERE uuid % 3 = ?", [i])
