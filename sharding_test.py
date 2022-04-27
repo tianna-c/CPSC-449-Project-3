@@ -49,4 +49,4 @@ def sharding():
 	for i in range(3):
 		con_shard = sqlite3.connect('shard_' + str(i+1) + '.db')
 	#hash uuid/user_id and insert game data into corresponding shards
-sharding()
+#sharding() #calls it and it creates the database shards
