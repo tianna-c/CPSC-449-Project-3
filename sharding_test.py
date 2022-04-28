@@ -1,4 +1,5 @@
 import sqlite3
+import random
 import uuid
 
 NUM_STATS = 1_000_000
@@ -12,20 +13,17 @@ def create_uuid():
 	cur = con.cursor()
 	# creates uuid column in users table
 	try:
-		cur.execute("ALTER TABLE users ADD COLUMN uuid GUID") # it gives this error if you try running the file more than once, "sqlite3.OperationalError: duplicate column name: uuid"
+		# it gives this error if you try running the file more than once, "sqlite3.OperationalError: duplicate column name: uuid"
+		cur.execute("ALTER TABLE users ADD COLUMN uuid GUID") 
 	except sqlite3.IntegrityError:
 		pass
-	# I think we should make a dictionary for the key-value pairs: user_id and uuid
+	# a dictionary for the key-value pairs: user_id and uuid
 	user_id_count = {}
-	# a for loop to generate uuid for each user and insert it into the uuid column
-	for i in range(NUM_USERS):
+	# for loop to generate uuid for each user and insert it into the uuid column
+	for i in range(NUM_USERS+1):
 		user_uuid = uuid.uuid4() # generate uuid
 		user_id_count[i] = user_uuid #insert uuid into dict according the the corresponding user_id from the loop
-		#print("Test: " + str([user_id_count[i], i]))
 		cur.execute("UPDATE users SET uuid = ? WHERE user_id = ?", [user_uuid, i])
-	#print(len(user_id_count))
-	#print(user_id_count.items())
-	#print("Final: " + str([user_id_count[i], i]))
 	con.commit()
 	# creates uuid column in games tables
 	try:
@@ -35,9 +33,10 @@ def create_uuid():
 	x = 0
 	# should do the same thing as the above loop
 	while x < NUM_STATS:
-		#print("Test: " + str([user_id_count[x], x]))
-		#gives KeyError
-		cur.execute("UPDATE games SET uuid = ? WHERE user_id = ?", [user_id_count[x], x])
+		#generate a random user_id
+		rand_user = random.randint(0, len(user_id_count) - 1)
+		# insert uuid into the uuid column according to the corresponding random user_d
+		cur.execute("UPDATE games SET uuid = ? WHERE user_id = ?", [user_id_count[rand_user], rand_user])
 		x += 1
 	con.commit()
 create_uuid()
@@ -54,3 +53,4 @@ def sharding():
 		#hash uuid/user_id and insert game data into corresponding shards
 		cur_two = con_shard.cursor()
 		cur_one.execute("SELECT * from games WHERE uuid % 3 = ?", [i])
+		
