@@ -48,12 +48,16 @@ def sharding():
 	con = sqlite3.connect('stats.db', detect_types=sqlite3.PARSE_DECLTYPES)
 	cur = con.cursor()
 
+	con_User= sqlite3.connect('userShard.db')
+	cur_User= con_User.cursor()
+	cur_User.execute("CREATE TABLE IF NOT EXISTS users(user_id INTEGER, username VARCHAR UNIQUE, uuid VARCHAR PRIMARY KEY)")
+
 	userID = ""
 
 	for i in range(3):
 		con_temp = sqlite3.connect('shard_' + str(i+1) + '.db')
 		cur_temp = con_temp.cursor()
-		cur_temp.execute("CREATE TABLE IF NOT EXISTS games (user_id INTEGER NOT NULL, game_id INTEGER NOT NULL, finished DATE DEFAULT CURRENT_TIMESTAMP, guesses INTEGER, won BOOLEAN, PRIMARY KEY(user_id, game_id))")
+		cur_temp.execute("CREATE TABLE IF NOT EXISTS games(user_id INTEGER NOT NULL, game_id INTEGER NOT NULL, finished DATE DEFAULT CURRENT_TIMESTAMP, guesses INTEGER, won BOOLEAN, PRIMARY KEY(user_id, game_id))")
 	
 	try:
 		#Iterate through user DB, calculate shard using UUID, then
@@ -74,6 +78,10 @@ def sharding():
 			#Connect to corresponding shard DB
 			con_temp = sqlite3.connect('shard_' + str(uuid_shard_num) + '.db', detect_types=sqlite3.PARSE_DECLTYPES)
 			cur_temp = con_temp.cursor()
+
+			#Insert this row into User Shard
+			cur_User.execute("INSERT INTO users VALUES(?, ?, ?)", (str(row[0]), str(row[1]), str(row[2])))
+			con_User.commit()
 			
 			#Fetch the corresponding user's game data then insert into shard DB
 			fetch_games = cur.execute("SELECT * FROM games WHERE user_id = ?", (row[0],)).fetchall()
@@ -85,6 +93,7 @@ def sharding():
 				con_temp.commit()
 			con_temp.close()
 		con.close()
+		con_User.close()
 	except:
 		print("ERROR!")
 
