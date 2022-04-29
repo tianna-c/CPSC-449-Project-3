@@ -1,20 +1,16 @@
-from asyncio import streams
-from sqlite3 import dbapi2
-from typing import List
 import sqlite3
-import datetime
 import contextlib
 import uuid
 
-#Required to create a request and response body for data
+from typing import List
 from pydantic import BaseModel, Field, BaseSettings
-#Define FastAPI HTTP Methods
-from fastapi import Depends, FastAPI, status
-response_model = List[BaseModel]
+from fastapi import Depends, FastAPI
+
 class Settings(BaseSettings):
 	database1: str
 	database2: str
 	database3: str
+	databaseUser: str
 
 	class Config:
 		env_file = ".env"
@@ -48,21 +44,7 @@ class userStats(BaseModel):
 	averageGuesses: int = Field(0)
 	
 app = FastAPI()
-
-# def get_settings():
-# 	settings = Settings()
-# 	print(settings.database1)
-# 	print(settings.database2)
-# 	print(settings.database3)
-
 settings = Settings()
-# get_settings()
-
-# # Dependencies
-# async def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):
-#     return {"q": q, "skip": skip, "limit": limit}
-
-#calculate_statistics(settings.database1, 1)
 
 def get_db():
     with contextlib.closing(sqlite3.connect(settings.database1)) as db:
@@ -79,13 +61,31 @@ def get_db3():
         db.row_factory = sqlite3.Row
         yield db
 
-@app.get('/getStats/')
-def retrieveStats(currUser: user, db1: sqlite3.Connection = Depends(get_db), db2: sqlite3.Connection = Depends(get_db2), db3: sqlite3.Connection = Depends(get_db3)):
+def get_db_user():
+    with contextlib.closing(sqlite3.connect(settings.databaseUser)) as db:
+        db.row_factory = sqlite3.Row
+        yield db
+
+def calcShardNum(user, userDB):
+	con = userDB
+
+	try:
+		fetch = con.execute("SELECT * FROM users WHERE user_id = ?", (user,))
+	except:
+		print("ERROR FETCHING")
+	
+	for row in fetch:
+		num = int(uuid.UUID(row[2])) % 3
+
+	con.close()
+	return num
+
+def calculateStats(database_name, userInput):
 	sqlite3.register_converter('GUID', lambda b: uuid.UUID(bytes_le=b))
 	sqlite3.register_adapter(uuid.UUID, lambda u: u.bytes_le)
-	con = db2
-
-	user = currUser.user
+	
+	con = database_name
+	user = userInput
 
 	userGuesses = guessesMod()
 	userStatistics = userStats()
@@ -97,18 +97,13 @@ def retrieveStats(currUser: user, db1: sqlite3.Connection = Depends(get_db), db2
 	
 	cStreak = 0
 	mStreak = 0
-	guessList = []
 	guessList = [0 for i in range(7)]
 	wPercent = 0
 	totalGames = 0
 
 	for row in fetch:
-		print("The current date is: " + str(row[2]))
-		print("Won: " + str(row[4]))
-		#print(row[3])
 		guessList[int(row[3])-1] += 1
-		# print("Current index is: " + str(row[3] - 1))
-		# print("Current index value is: " + str(guessList[row[3] - 1]))
+
 		if(row[4] == 0):
 			guessList[6] += 1
 
@@ -122,9 +117,6 @@ def retrieveStats(currUser: user, db1: sqlite3.Connection = Depends(get_db), db2
 				mStreak = cStreak
 		else:
 			cStreak = 0
-	
-	# if(cStreak > mStreak):
-	# 	mStreak = cStreak
 
 	numPlayed = 0
 	for i in range(len(guessList)):
@@ -133,9 +125,6 @@ def retrieveStats(currUser: user, db1: sqlite3.Connection = Depends(get_db), db2
 	
 	wPercent = round(100 * (numPlayed - guessList[6]) / numPlayed)
 	totalGames = numPlayed
-	
-	print(cStreak)
-	print(mStreak)
 	
 	for i in range(len(guessList)):
 		if(i == 0):
@@ -153,21 +142,6 @@ def retrieveStats(currUser: user, db1: sqlite3.Connection = Depends(get_db), db2
 		if(i == 6):
 			userGuesses.fail = guessList[i]
 
-	
-
-	print(wPercent)
-	print(totalGames)	
-	
-	#print(counterTest)
-	# gameID: int
-	# currentStreak: int
-	# maxStreak: int
-	# guesses: guesses
-	# winPercentage: int
-	# gamesPlayed: int
-	# gamesWon: int
-	# averageGuesses: int
-
 	userStatistics.currentStreak = cStreak
 	userStatistics.maxStreak = mStreak
 	userStatistics.guesses = userGuesses
@@ -180,8 +154,7 @@ def retrieveStats(currUser: user, db1: sqlite3.Connection = Depends(get_db), db2
 		averageCounter += (i+1) * guessList[i]
 
 	average = round(averageCounter / totalGames, 0)
-	print(average)
-	print(averageCounter)
+
 	if(average < (averageCounter / totalGames)):
 		average += 1
 
@@ -189,53 +162,20 @@ def retrieveStats(currUser: user, db1: sqlite3.Connection = Depends(get_db), db2
 
 	return userStatistics
 
-	#return("It was a success!")
+@app.get('/getStats/')
+def retrieveStats(currUser: user, dbUser: sqlite3.Connection = Depends(get_db_user), db1: sqlite3.Connection = Depends(get_db), db2: sqlite3.Connection = Depends(get_db2), db3: sqlite3.Connection = Depends(get_db3)):
+	num = calcShardNum(currUser.user, dbUser)
+	shardSelection = None
 
+	if(num == 0):
+		shardSelection = db1
+	elif(num == 1):
+		shardSelection = db2
+	elif(num == 2):
+		shardSelection = db3
 
-#Checking Pydantic Model is accurate for Guesses and Aliases
-@app.get('/checkAnswer/guessModelCheck/')
-def guessChecker():
-	print(statistics.schema_json(indent=2))
+	return calculateStats(shardSelection, currUser.user)
 
-# @app.post('/checkAnswer/result/')
-# def results(input: gameID):
-# 	#Posting a win or loss for a particular game, along with a timestamp and number of guesses.
-# 	#user enters a gameID to retrieve the results of that game?
-	
-# 	#Retrieve the current game statistics based on the passed in Game ID
-#     con = sqlite3.connect("statistics.db")
-#     cur = con.cursor()
-#     server = ""
-    	
-#     try:
-#         fetch = cur.execute("SELECT * FROM a WHERE ID = ?", (input.gameID,)).fetchall()
-#         con.commit()
-
-#         server = fetch[0][0]
-
-#         print("The game stats are: " + server)
-#     except:
-#         print("Game # " + str(input.gameID) + " does not exist in this database!")
-
-@app.post('/statistics/')
-def statistics(input: user):
-	#Retrieving the statistics for a user.
-	
-	#Retrieve the user stats based on entered username?
-    con = sqlite3.connect("statistics.db")
-    cur = con.cursor()
-    server = ""
-    	
-    try:
-        fetch = cur.execute("SELECT * FROM a WHERE ID = ?", (input.user,)).fetchall()
-        con.commit()
-
-        server = fetch[0][0]
-
-        print("The game stats are: " + server)
-    except:
-        print("Game # " + str(input.user) + " does not exist in this database!")
-	
 @app.post('/toptens/')
 def toptens():
 	#Retrieving the top 10 users by number of wins. Retrieving the top 10 users by longest streak
