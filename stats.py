@@ -17,6 +17,7 @@ YEAR = 2022
 random.seed(YEAR)
 fake = faker.Faker()
 fake.seed(YEAR)
+
 with contextlib.closing(sqlite3.connect(DATABASE)) as db:
     with open(SCHEMA) as f:
         db.executescript(f.read())
@@ -30,10 +31,12 @@ with contextlib.closing(sqlite3.connect(DATABASE)) as db:
                 continue
             break
     db.commit()
+
     jan_1 = datetime.date(YEAR, 1, 1)
     today = datetime.date.today()
     num_days = (today - jan_1).days
     i = 0
+    
     while i < NUM_STATS:
         while True:
            try:
