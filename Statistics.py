@@ -31,7 +31,6 @@ class statistics(BaseModel):
 	gameID: int
 	currentStreak: int
 	maxStreak: int
-	#guess: Field(None, alias='counter') #idk how to make store this one #guess: List[int](alias='counter') = [] //nested object w/ alias for integer keys
 	guesses: guesses
 	winPercentage: int
 	gamesPlayed: int
@@ -40,34 +39,34 @@ class statistics(BaseModel):
 	
 app = FastAPI()
 
-# Dependencies
-async def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):
-    return {"q": q, "skip": skip, "limit": limit}
+# # Dependencies
+# async def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):
+#     return {"q": q, "skip": skip, "limit": limit}
 
 #Checking Pydantic Model is accurate for Guesses and Aliases
 @app.get('/checkAnswer/guessModelCheck/')
 def guessChecker():
 	print(statistics.schema_json(indent=2))
 
-@app.post('/checkAnswer/result/')
-def results(input: gameID):
-	#Posting a win or loss for a particular game, along with a timestamp and number of guesses.
-	#user enters a gameID to retrieve the results of that game?
+# @app.post('/checkAnswer/result/')
+# def results(input: gameID):
+# 	#Posting a win or loss for a particular game, along with a timestamp and number of guesses.
+# 	#user enters a gameID to retrieve the results of that game?
 	
-	#Retrieve the current game statistics based on the passed in Game ID
-    con = sqlite3.connect("statistics.db")
-    cur = con.cursor()
-    server = ""
+# 	#Retrieve the current game statistics based on the passed in Game ID
+#     con = sqlite3.connect("statistics.db")
+#     cur = con.cursor()
+#     server = ""
     	
-    try:
-        fetch = cur.execute("SELECT * FROM a WHERE ID = ?", (input.gameID,)).fetchall()
-        con.commit()
+#     try:
+#         fetch = cur.execute("SELECT * FROM a WHERE ID = ?", (input.gameID,)).fetchall()
+#         con.commit()
 
-        server = fetch[0][0]
+#         server = fetch[0][0]
 
-        print("The game stats are: " + server)
-    except:
-        print("Game # " + str(input.gameID) + " does not exist in this database!")
+#         print("The game stats are: " + server)
+#     except:
+#         print("Game # " + str(input.gameID) + " does not exist in this database!")
 
 @app.post('/statistics/')
 def statistics(input: user):
