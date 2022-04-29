@@ -10,6 +10,7 @@ class Settings(BaseSettings):
 	database1: str
 	database2: str
 	database3: str
+	databaseUser: str
 
 	class Config:
 		env_file = ".env"
@@ -60,9 +61,29 @@ def get_db3():
         db.row_factory = sqlite3.Row
         yield db
 
+def get_db_user():
+    with contextlib.closing(sqlite3.connect(settings.databaseUser)) as db:
+        db.row_factory = sqlite3.Row
+        yield db
+
+def calcShardNum(user, userDB):
+	con = userDB
+
+	try:
+		fetch = con.execute("SELECT * FROM users WHERE user_id = ?", (user,))
+	except:
+		print("ERROR FETCHING")
+	
+	for row in fetch:
+		num = int(uuid.UUID(row[2])) % 3
+
+	con.close()
+	return num
+
 def calculateStats(database_name, userInput):
 	sqlite3.register_converter('GUID', lambda b: uuid.UUID(bytes_le=b))
 	sqlite3.register_adapter(uuid.UUID, lambda u: u.bytes_le)
+	
 	con = database_name
 	user = userInput
 
@@ -105,9 +126,6 @@ def calculateStats(database_name, userInput):
 	wPercent = round(100 * (numPlayed - guessList[6]) / numPlayed)
 	totalGames = numPlayed
 	
-	print(cStreak)
-	print(mStreak)
-	
 	for i in range(len(guessList)):
 		if(i == 0):
 			userGuesses.guess1 = int(guessList[i])
@@ -136,8 +154,7 @@ def calculateStats(database_name, userInput):
 		averageCounter += (i+1) * guessList[i]
 
 	average = round(averageCounter / totalGames, 0)
-	print(average)
-	print(averageCounter)
+
 	if(average < (averageCounter / totalGames)):
 		average += 1
 
@@ -146,8 +163,18 @@ def calculateStats(database_name, userInput):
 	return userStatistics
 
 @app.get('/getStats/')
-def retrieveStats(currUser: user, db1: sqlite3.Connection = Depends(get_db), db2: sqlite3.Connection = Depends(get_db2), db3: sqlite3.Connection = Depends(get_db3)):
-	return calculateStats(db2, currUser.user)
+def retrieveStats(currUser: user, dbUser: sqlite3.Connection = Depends(get_db_user), db1: sqlite3.Connection = Depends(get_db), db2: sqlite3.Connection = Depends(get_db2), db3: sqlite3.Connection = Depends(get_db3)):
+	num = calcShardNum(currUser.user, dbUser)
+	shardSelection = None
+
+	if(num == 0):
+		shardSelection = db1
+	elif(num == 1):
+		shardSelection = db2
+	elif(num == 2):
+		shardSelection = db3
+
+	return calculateStats(shardSelection, currUser.user)
 
 @app.post('/toptens/')
 def toptens():
