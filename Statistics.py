@@ -1,12 +1,21 @@
+from asyncio import streams
 from typing import List
 import sqlite3
 import datetime
 import uuid
 
 #Required to create a request and response body for data
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, BaseSettings
 #Define FastAPI HTTP Methods
 from fastapi import Depends, FastAPI, status
+
+class Settings(BaseSettings):
+	database1: str
+	database2: str
+	database3: str
+
+	class Config:
+		env_file = ".env"
 
 class user(BaseModel):
 	user: str
@@ -39,9 +48,21 @@ class statistics(BaseModel):
 	
 app = FastAPI()
 
+def get_settings():
+	settings = Settings()
+	print(settings.database1)
+	print(settings.database2)
+	print(settings.database3)
+
+get_settings()
+
 # # Dependencies
 # async def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):
 #     return {"q": q, "skip": skip, "limit": limit}
+
+@app.get('/getStats/')
+def retrieveStats():
+	
 
 #Checking Pydantic Model is accurate for Guesses and Aliases
 @app.get('/checkAnswer/guessModelCheck/')
