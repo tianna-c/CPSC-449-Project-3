@@ -3,8 +3,17 @@ import random
 import uuid
 import contextlib
 
+#Required to create a request and response body for data
+from pydantic import BaseModel, Field
+#Define FastAPI HTTP Methods
+from fastapi import Depends, FastAPI, status
+
 NUM_STATS = 1_000_000
 NUM_USERS = 100_000
+
+class user(BaseModel):
+	user: str
+	gameID: int
 
 # create uuid columns in users and games tables
 def create_uuid():
@@ -15,10 +24,11 @@ def create_uuid():
 
 	# creates uuid column in users table
 	try:
-		# it gives this error if you try running the file more than once, "sqlite3.OperationalError: duplicate column name: uuid"
 		cur.execute("ALTER TABLE users ADD COLUMN uuid GUID") 
-	except sqlite3.IntegrityError:
+	except:
+		#Skip error if the column already exists
 		pass
+	
 
 	# a dictionary for the key-value pairs: user_id and uuid
 	user_id_count = {}
@@ -29,37 +39,8 @@ def create_uuid():
 		cur.execute("UPDATE users SET uuid = ? WHERE user_id = ?", [user_uuid, i])
 	con.commit()
 
-	# # creates uuid column in games tables
-	# try:
-	# 	cur.execute("ALTER TABLE games ADD COLUMN uuid GUID")
-	# except sqlite3.IntegrityError:
-	# 	pass
-	# x = 0
-
-	# # should do the same thing as the above loop
-	# while x < NUM_STATS:
-	# 	#generate a random user_id
-	# 	rand_user = random.randint(0, len(user_id_count) - 1)
-	# 	# insert uuid into the uuid column according to the corresponding random user_d
-	# 	cur.execute("UPDATE games SET uuid = ? WHERE user_id = ?", [user_id_count[rand_user], rand_user])
-	# 	x += 1
-	# con.commit()
-
+#Only uncomment for 1st time run where Stats.db hasn't been altered yet
 #create_uuid()
-
-# def sharding():
-# 	#sharding time!!!!
-# 	sqlite3.register_converter('GUID', lambda b: uuid.UUID(bytes_le=b))
-# 	sqlite3.register_adapter(uuid.UUID, lambda u: u.bytes_le)
-# 	con_one = sqlite3.connect('stats.db', detect_types=sqlite3.PARSE_DECLTYPES)
-# 	cur_one = con_one.cursor()
-# 	#creates three database files named shard_one, shard_two, and shard_three
-# 	for i in range(3):
-# 		con_shard = sqlite3.connect('shard_' + str(i+1) + '.db')
-# 		#hash uuid/user_id and insert game data into corresponding shards
-# 		cur_two = con_shard.cursor()
-# 		cur_one.execute("SELECT * from games WHERE uuid % 3 = ?", [i])
-SCHEMA = 'stats.sql'
 
 def sharding():
 	sqlite3.register_converter('GUID', lambda b: uuid.UUID(bytes_le=b))
@@ -67,12 +48,44 @@ def sharding():
 	con = sqlite3.connect('stats.db', detect_types=sqlite3.PARSE_DECLTYPES)
 	cur = con.cursor()
 
+	userID = ""
+
 	for i in range(3):
-		# con_shard = sqlite3.connect('shard_' + str(i+1) + '.db')
-		# con_shard.close()
-		sqlite3.connect('shard_' + str(i+1) + '.db')
-		#print('shard_' + str(i+1) + '.db')
+		con_temp = sqlite3.connect('shard_' + str(i+1) + '.db')
+		cur_temp = con_temp.cursor()
+		cur_temp.execute("CREATE TABLE IF NOT EXISTS games (user_id INTEGER NOT NULL, game_id INTEGER NOT NULL, finished DATE DEFAULT CURRENT_TIMESTAMP, guesses INTEGER, won BOOLEAN, PRIMARY KEY(user_id, game_id))")
 	
-	
+	try:
+		#Iterate through user DB, calculate shard using UUID, then
+		#fetch all game records for that user from games DB and shard
+		#into respective shard DB
+		fetch = cur.execute("SELECT * FROM users").fetchall()
+		#con.commit()
+		for row in fetch:
+			#Debugging
+			print("User ID: " + str(row[0]))
+			print("User UUID: " + str(row[2]))
+
+			#Retrieve the shard number for this row's user based on UUID value
+			uuid_shard_num = int(row[2]) % 3 + 1
+
+			print("The user shard DB is: " + str(uuid_shard_num))
+
+			#Connect to corresponding shard DB
+			con_temp = sqlite3.connect('shard_' + str(uuid_shard_num) + '.db', detect_types=sqlite3.PARSE_DECLTYPES)
+			cur_temp = con_temp.cursor()
+			
+			#Fetch the corresponding user's game data then insert into shard DB
+			fetch_games = cur.execute("SELECT * FROM games WHERE user_id = ?", (row[0],)).fetchall()
+			for gameData in fetch_games:
+				print(gameData)
+
+				#Insert a row of game stats associated with this user into the corresponding shard DB
+				cur_temp.execute("INSERT INTO games VALUES(?, ?, ?, ?, ?)", (gameData[0], gameData[1], gameData[2], gameData[3], gameData[4]))
+				con_temp.commit()
+			con_temp.close()
+		con.close()
+	except:
+		print("ERROR!")
 
 sharding()
