@@ -16,18 +16,24 @@
 
 # Statistics Microservice
 > Commands in File "Statistics.py"<br>
-> Description: 'Statistics.py' handles XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+> Description: 'Statistics.py' handles posting a win/loss for a particular game along with a timestamp and number of guesses, and retrieving those statistics for a user with a specific format.
               
-              /result/{current_user}    - XXXXXXXXXXXXX
-              /toptens/  - XXXXXXXXXXXXXXXX
+              /result/{current_user}  - XXXXXXXXXXXXX
+              /toptens/  - Retrieving the top 10 users by number of wins or longest streak
 
 1. /result/{current_user}
       The '/result/{current_user}' command will XXXXXXXXXXXXXXXXXXXXXXXXX.
    
    ![VirtualBox_Tuffix 2020 Edition_08_04_2022_19_58_09](https://user-images.githubusercontent.com/39601543/162554364-03d65d09-02ec-4de7-83a5-5adcbb0efc2d.png)
 ###### ^Above image should be replaced 
+
+2. /getStats/
+      The 'getStats' command will XXXXXXXXXXXXXXXXXXXXXXXXXXXX.
    
-2. /toptens/
+   ![VirtualBox_Tuffix 2020 Edition_08_04_2022_19_58_09](https://user-images.githubusercontent.com/39601543/162554364-03d65d09-02ec-4de7-83a5-5adcbb0efc2d.png)
+###### ^Above image should be replaced 
+
+3. /toptens/
       The 'toptens' command will XXXXXXXXXXXXXXXXXXXXXXXXXXXX.
    
    ![VirtualBox_Tuffix 2020 Edition_08_04_2022_19_58_09](https://user-images.githubusercontent.com/39601543/162554364-03d65d09-02ec-4de7-83a5-5adcbb0efc2d.png)
