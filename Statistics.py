@@ -4,7 +4,7 @@ import uuid
 
 from typing import List
 from pydantic import BaseModel, Field, BaseSettings
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 
 class Settings(BaseSettings):
 	database1: str
@@ -43,8 +43,13 @@ class userStats(BaseModel):
 	gamesPlayed: int = Field(0)
 	gamesWon: int = Field(0)
 	averageGuesses: int = Field(0)
-	
-app = FastAPI()
+
+class userChart:
+	def _init_(self, userID, value):
+		self.userID = userID
+		self.value = value
+
+app = FastAPI(root_path="/api/v1")
 settings = Settings()
 
 def get_db():
@@ -162,14 +167,13 @@ def calculateStats(database_name, userInput):
 	userStatistics.averageGuesses = int(average)
 
 	return userStatistics
-	
 
-@app.post('/result/{current_user}')
-def postResults(currUser: user, dbUser: sqlite3.Connection = Depends(get_db_user), db1: sqlite3.Connection = Depends(get_db), db2: sqlite3.Connection = Depends(get_db2), db3: sqlite3.Connection = Depends(get_db3)):
+@app.post('/result/')
+def postResults(userResults: results, dbUser: sqlite3.Connection = Depends(get_db_user), db1: sqlite3.Connection = Depends(get_db), db2: sqlite3.Connection = Depends(get_db2), db3: sqlite3.Connection = Depends(get_db3)):
 	sqlite3.register_converter('GUID', lambda b: uuid.UUID(bytes_le=b))
 	sqlite3.register_adapter(uuid.UUID, lambda u: u.bytes_le)
 	
-	num = calcShardNum(currUser.user, dbUser)
+	num = calcShardNum(userResults.userID, dbUser)
 	shardSelection = None
 
 	if(num == 0):
@@ -178,28 +182,22 @@ def postResults(currUser: user, dbUser: sqlite3.Connection = Depends(get_db_user
 		shardSelection = db2
 	elif(num == 2):
 		shardSelection = db3
-		
-	con = shardSelection
-	user = userInput
-	result = results()
 	
-	if(win == True):
-		result.won() == 1
-	else:
-		result.won() == 0
+	print(num)
+	con = shardSelection
 
 	try:
-		submitResult = con.execute(
+		con.execute(
 			"""
 			INSERT INTO games(user_id, game_id, finished, guesses, won)
 			VALUES(?, ?, ?, ?, ?)
-                    """, user, result
+                    """, (userResults.userID, userResults.gameID, userResults.timestamp, userResults.guesses, userResults.result)
                     )
 		con.commit()
 	except sqlite3.IntegrityError:
-		print("ERROR FETCHING")
+		print("ERROR POSTING")
 
-	#return(shardSelection, currUser.user)
+	return {"Status": "Success!"}
 
 @app.get('/getStats/')
 def retrieveStats(currUser: user, dbUser: sqlite3.Connection = Depends(get_db_user), db1: sqlite3.Connection = Depends(get_db), db2: sqlite3.Connection = Depends(get_db2), db3: sqlite3.Connection = Depends(get_db3)):
@@ -215,11 +213,40 @@ def retrieveStats(currUser: user, dbUser: sqlite3.Connection = Depends(get_db_us
 
 	return calculateStats(shardSelection, currUser.user)
 
-@app.post('/toptens/')
-def toptens():
-	#Retrieving the top 10 users by number of wins. Retrieving the top 10 users by longest streak
-	#user can select how they want to retrieve the top 10 users?
+# @app.post('/toptens/')
+# def toptens(dbUser: sqlite3.Connection = Depends(get_db_user), db1: sqlite3.Connection = Depends(get_db), db2: sqlite3.Connection = Depends(get_db2), db3: sqlite3.Connection = Depends(get_db3)):
+# 	chart_con = dbUser
+# 	fetch = None
+
+# 	try:
+# 		fetch = chart_con.execute("SELECT * FROM users").fetchall()
+# 	except:
+# 		print("ERROR FETCHING!!!")
+
 	
-	#idea: check all 3 shards for their top tens, and sort those top tens to find the true top tens and output them
+
+# 	for row in fetch:
+# 		print(row)
+# 		print("The current user ID is: " + str(row[0]))
+
+# 		userIDTemp = int(row[0])
+# 		num = calcShardNum(userIDTemp, dbUser)
+# 		print(num)
+
+# 		# print(num)
+# 		# if(num == 0):
+# 		# 	shardSelection = db1
+# 		# elif(num == 1):
+# 		# 	shardSelection = db2
+# 		# elif(num == 2):
+# 		# 	shardSelection = db3
 	
-	return 0
+# 		# print(num)
+# 		# user_con = shardSelection
+
+# 		# temp_stats = userStats()
+# 		# temp_stats = calculateStats(user_con, row[0])
+		
+# 		# print(temp_stats.winPercentage)
+	
+# 	return 0
