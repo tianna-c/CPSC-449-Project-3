@@ -15,20 +15,20 @@
 ![VirtualBox_Tuffix 2020 Edition_08_04_2022_19_58_09](https://user-images.githubusercontent.com/39601543/162554364-03d65d09-02ec-4de7-83a5-5adcbb0efc2d.png)
 
 # Statistics Microservice
-> Commands in File "XXXXX.py"<br>
-> Description: 'XXXXX.py' handles 
+> Commands in File "Statistics.py"<br>
+> Description: 'Statistics.py' handles XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
               
-              /XXXXX/    - XXXXX
-              /XXXXX/  - XXXXX
+              /result/{current_user}    - XXXXXXXXXXXXX
+              /toptens/  - XXXXXXXXXXXXXXXX
 
-1. /XXXXX/
-      The 'XXXXX' command will XXXXX.
+1. /result/{current_user}
+      The '/result/{current_user}' command will XXXXXXXXXXXXXXXXXXXXXXXXX.
    
    ![Game1](https://user-images.githubusercontent.com/39601543/162555378-559a8df8-fec9-4eea-b641-0cad3bc822e6.png)
 ###### ^Above image should be replaced 
    
-2. /XXXXX/
-      The 'XXXXX' command will XXXXX.
+2. /toptens/
+      The 'toptens' command will XXXXXXXXXXXXXXXXXXXXXXXXXXXX.
    
    ![ChangeWord](https://user-images.githubusercontent.com/39601543/162555424-1e28ee79-c2f7-4078-ab45-7944017b405d.png)
 ###### ^Above image should be replaced 
