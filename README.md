@@ -16,10 +16,10 @@
 
 # Statistics Microservice
 > Commands in File "Statistics.py"<br>
-> Description: 'Statistics.py' handles posting a win/loss for a particular game along with a timestamp and number of guesses, and retrieving those statistics for a user with a specific format.
+> Description: 'Statistics.py' handles presenting the statics of a user's game or record, and retrieving the top 10 users.
               
-              /result/{current_user}  - XXXXXXXXXXXXX
-              /getStats/  - XXXXXXXXXXXXXX
+              /result/{current_user}  - Posting a win or loss for a particular game, along with a timestamp and number of guesses
+              /getStats/  - Retrieving the statistics for a user
               /toptens/  - Retrieving the top 10 users by number of wins or longest streak
 
 1. /result/{current_user}
