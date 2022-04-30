@@ -20,6 +20,7 @@ class user(BaseModel):
 	gameID: int
 	
 class results(BaseModel):
+	userID: int
 	gameID: int
 	result: str
 	timestamp: str
@@ -161,6 +162,44 @@ def calculateStats(database_name, userInput):
 	userStatistics.averageGuesses = int(average)
 
 	return userStatistics
+	
+
+@app.post('/result/{current_user}')
+def postResults(currUser: user, dbUser: sqlite3.Connection = Depends(get_db_user), db1: sqlite3.Connection = Depends(get_db), db2: sqlite3.Connection = Depends(get_db2), db3: sqlite3.Connection = Depends(get_db3)):
+	sqlite3.register_converter('GUID', lambda b: uuid.UUID(bytes_le=b))
+	sqlite3.register_adapter(uuid.UUID, lambda u: u.bytes_le)
+	
+	num = calcShardNum(currUser.user, dbUser)
+	shardSelection = None
+
+	if(num == 0):
+		shardSelection = db1
+	elif(num == 1):
+		shardSelection = db2
+	elif(num == 2):
+		shardSelection = db3
+		
+	con = shardSelection
+	user = userInput
+	result = results()
+	
+	if(win == True):
+		result.won() == 1
+	else:
+		result.won() == 0
+
+	try:
+		submitResult = con.execute(
+			"""
+			INSERT INTO games(user_id, game_id, finished, guesses, won)
+			VALUES(?, ?, ?, ?, ?)
+                    """, user, result
+                    )
+		con.commit()
+	except sqlite3.IntegrityError:
+		print("ERROR FETCHING")
+
+	#return(shardSelection, currUser.user)
 
 @app.get('/getStats/')
 def retrieveStats(currUser: user, dbUser: sqlite3.Connection = Depends(get_db_user), db1: sqlite3.Connection = Depends(get_db), db2: sqlite3.Connection = Depends(get_db2), db3: sqlite3.Connection = Depends(get_db3)):
