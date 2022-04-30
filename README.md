@@ -19,6 +19,7 @@
 > Description: 'Statistics.py' handles posting a win/loss for a particular game along with a timestamp and number of guesses, and retrieving those statistics for a user with a specific format.
               
               /result/{current_user}  - XXXXXXXXXXXXX
+              /getStats/  - XXXXXXXXXXXXXX
               /toptens/  - Retrieving the top 10 users by number of wins or longest streak
 
 1. /result/{current_user}
