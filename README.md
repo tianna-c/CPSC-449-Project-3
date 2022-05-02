@@ -1,4 +1,4 @@
-###### Github Link: 
+###### Github Link: https://github.com/tianna-c/CPSC-449-Project-3
 ###### Program: Project 3
 ###### Authors: Tianna Cano, Patrick Lin, Raymond Magdaleno, Mark Wiedman
 ###### Date   : 4/29/2022 
