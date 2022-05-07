@@ -26,24 +26,7 @@
       The '/result/{current_user}' command will post a win or loss for a particular game, along with a timestamp and number of guesses.
 
 2. /getStats/
-      The 'getStats' command will retrieve the statistics for a user using a format similar to:
-      {
-        "currentStreak": 4,
-        "maxStreak": 5,
-        "guesses":{
-           "1": 0,
-           "2": 0,
-           "3": 2,
-           "4": 3,
-           "5": 4,
-           "6": 2,
-           "fail": 1
-        },
-        "winPercentage": 92,
-        "gamesPlayed": 12,
-        "gamesWon": 11,
-        "averageGuesses": 5
-      }
+      The 'getStats' command will retrieve the statistics for a user using a structured format.
 
 3. /toptens/
       The 'toptens' command will retrieving the top 10 users by number of wins and by longest streak.
