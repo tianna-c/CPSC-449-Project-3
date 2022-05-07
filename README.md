@@ -26,7 +26,7 @@
       The '/result/{current_user}' command will post a win or loss for a particular game, along with a timestamp and number of guesses.
 
 2. /getStats/
-      The 'getStats' command will retrieve the statistics for a user using format:
+      The 'getStats' command will retrieve the statistics for a user using a format similar to:
       {
         "currentStreak": 4,
         "maxStreak": 5,
