@@ -23,20 +23,28 @@
               /toptens/  - Retrieving the top 10 users by number of wins or longest streak
 
 1. /result/{current_user}
-      The '/result/{current_user}' command will XXXXXXXXXXXXXXXXXXXXXXXXX.
-   
-   ![VirtualBox_Tuffix 2020 Edition_08_04_2022_19_58_09](https://user-images.githubusercontent.com/39601543/162554364-03d65d09-02ec-4de7-83a5-5adcbb0efc2d.png)
-###### ^Above image should be replaced 
+      The '/result/{current_user}' command will post a win or loss for a particular game, along with a timestamp and number of guesses.
 
 2. /getStats/
-      The 'getStats' command will XXXXXXXXXXXXXXXXXXXXXXXXXXXX.
-   
-   ![VirtualBox_Tuffix 2020 Edition_08_04_2022_19_58_09](https://user-images.githubusercontent.com/39601543/162554364-03d65d09-02ec-4de7-83a5-5adcbb0efc2d.png)
-###### ^Above image should be replaced 
+      The 'getStats' command will retrieve the statistics for a user using format:
+      {
+        "currentStreak": 4,
+        "maxStreak": 5,
+        "guesses":{
+           "1": 0,
+           "2": 0,
+           "3": 2,
+           "4": 3,
+           "5": 4,
+           "6": 2,
+           "fail": 1
+        },
+        "winPercentage": 92,
+        "gamesPlayed": 12,
+        "gamesWon": 11,
+        "averageGuesses": 5
+      }
 
 3. /toptens/
-      The 'toptens' command will XXXXXXXXXXXXXXXXXXXXXXXXXXXX.
-   
-   ![VirtualBox_Tuffix 2020 Edition_08_04_2022_19_58_09](https://user-images.githubusercontent.com/39601543/162554364-03d65d09-02ec-4de7-83a5-5adcbb0efc2d.png)
-###### ^Above image should be replaced 
+      The 'toptens' command will retrieving the top 10 users by number of wins and by longest streak.
    
